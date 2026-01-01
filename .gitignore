@@ -1,0 +1,10 @@
+# Ignore everything
+*
+
+# But do NOT ignore directories (so Git can look inside them)
+!*/
+
+# Do NOT ignore C and Java source files
+!*.c
+!*.java
+!.gitignore
