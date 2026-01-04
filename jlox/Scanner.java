@@ -22,7 +22,7 @@ public class Scanner {
       scanToken();
     }
 
-    tokens.add(new Token(EOF, "", null, line));
+    tokens.add(new Token(TokenType.EOF, "", null, line));
     return tokens;
   }
 
@@ -34,39 +34,106 @@ public class Scanner {
     char c = advance();
     switch (c) {
       case '(':
-        addToken(LEFT_PAREN);
+        addToken(TokenType.LEFT_PAREN);
         break;
       case ')':
-        addToken(RIGHT_PAREN);
+        addToken(TokenType.RIGHT_PAREN);
         break;
       case '{':
-        addToken(LEFT_BRACE);
+        addToken(TokenType.LEFT_BRACE);
         break;
       case '}':
-        addToken(RIGHT_BRACE);
+        addToken(TokenType.RIGHT_BRACE);
         break;
       case ',':
-        addToken(COMMA);
+        addToken(TokenType.COMMA);
         break;
       case '.':
-        addToken(DOT);
+        addToken(TokenType.DOT);
         break;
       case '-':
-        addToken(MINUS);
+        addToken(TokenType.MINUS);
         break;
       case '+':
-        addToken(PLUS);
+        addToken(TokenType.PLUS);
         break;
       case ';':
-        addToken(SEMICOLON);
+        addToken(TokenType.SEMICOLON);
         break;
       case '*':
-        addToken(STAR);
+        addToken(TokenType.STAR);
         break;
+      case '!':
+        addToken(match('=') ? TokenType.BANG_EQUAL : TokenType.BANG);
+        break;
+      case '=':
+        addToken(match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL);
+        break;
+      case '<':
+        addToken(match('=') ? TokenType.LESS_EQUAL : TokenType.LESS);
+        break;
+      case '>':
+        addToken(match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
+        break;
+      case '/':
+        if (match('/')) {
+          // A comment goes until the end of the line.
+          while (peek() != '\n' && !isAtEnd())
+            advance();
+        } else {
+          addToken(TokenType.SLASH);
+        }
+        break;
+
+      case ' ':
+      case '\r':
+      case '\t':
+        // Ignore whitespace.
+        break;
+
+      case '\n':
+        line++;
+        break;
+      case '"': string(); break;
       default:
         Lox.error(line, "Unexpected character.");
         break;
     }
+  }
+
+  private boolean match(char expected) {
+    if (isAtEnd())
+      return false;
+    if (source.charAt(current) != expected)
+      return false;
+
+    current++;
+    return true;
+  }
+
+    private void string() {
+    while (peek() != '"' && !isAtEnd()) {
+      if (peek() == '\n') line++;
+      advance();
+    }
+
+    if (isAtEnd()) {
+      Lox.error(line, "Unterminated string.");
+      return;
+    }
+
+    // The closing ".
+    advance();
+
+    // Trim the surrounding quotes.
+    String value = source.substring(start + 1, current - 1);
+    addToken(TokenType.STRING, value);
+  }
+
+  private char peek() {
+    if (isAtEnd())
+      return '\0';
+    return source.charAt(current);
   }
 
   private char advance() {
