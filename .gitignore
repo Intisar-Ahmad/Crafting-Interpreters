@@ -8,3 +8,7 @@
 !*.c
 !*.java
 !.gitignore
+!*.txt
+!*.md
+!*.json
+!*.xml
